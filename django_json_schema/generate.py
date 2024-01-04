@@ -1,4 +1,5 @@
 import json
+import re
 from jsonschema import Draft7Validator
 from django.http import JsonResponse
 from .models import JsonValidate
@@ -32,6 +33,8 @@ def insert_json(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'detail': 'Metode HTTP tidak didukung'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @api_view(['POST'])
 def generate_json_schema(request):
