@@ -1,2 +1,3 @@
 1. clone
-2. python manage.py runserve
+2. . .venv/bin/activate
+3. python manage.py runserve
