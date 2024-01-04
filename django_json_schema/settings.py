@@ -38,7 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'corsheaders',
     'django.contrib.staticfiles',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8001",  # Sesuaikan dengan alamat project_frontend
 ]
 
 MIDDLEWARE = [
@@ -49,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'django_json_schema.urls'
