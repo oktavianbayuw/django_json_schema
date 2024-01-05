@@ -2,7 +2,7 @@ import json
 from django.http import JsonResponse
 from .models import JsonValidate
 from django.utils import timezone
-from jsonschema import validate, exceptions
+from jsonschema import validate, ValidationError, exceptions
 import jsonschema
 from .serializers import jsonValidatorSerializer
 from rest_framework.decorators import api_view
@@ -55,34 +55,35 @@ def validate_json(request):
         try:
             json_data = JsonValidate.objects.get(url_path=url_path)
         except JsonValidate.DoesNotExist:
-            return Response({'detail': 'Skema JSON tidak ditemukan'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'detail': 'Skema JSON tidak ditemukan'}, status=status.HTTP_404_NOT_FOUND)
 
         json_string = data.get('json_string')
 
-        # Validasi apakah json_schema adalah objek JSON yang valid
         try:
             json_schema_dict = json.loads(json_schema)
         except json.JSONDecodeError:
-            return Response({'detail': 'Skema JSON tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'detail': 'Skema JSON tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Periksa apakah json_string adalah JSON yang valid sesuai dengan schema
         try:
             validate(instance=json.loads(json_string), schema=json_schema_dict)
-            # JSON valid
             status_value = 1
             errors = None
-        except exceptions.ValidationError as e:
-            # JSON tidak valid
+        except ValidationError as e:
             status_value = 0
-            errors = [str(error) for error in e.errors]
+            errors = [str(error) for error in e.args]
+
+            for error in e.path:
+                if 'type' in e.schema:
+                    status_value = 0
+                    break
 
         json_data.status = status_value
         json_data.dt_modified = timezone.now()
         json_data.save()
 
         if status_value == 1:
-            return Response({'detail': 'Data JSON valid'}, status=status.HTTP_200_OK)
+            return JsonResponse({'detail': 'JSON Valid', 'code' : 200}, status=status.HTTP_200_OK)
         else:
-            return Response({'detail': 'Data JSON tidak valid', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'detail': 'JSON Tidak Valid', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'detail': 'Metode HTTP tidak didukung'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return JsonResponse({'detail': 'Metode HTTP tidak didukung'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
