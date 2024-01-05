@@ -19,11 +19,15 @@ def insert_json(request):
         existing_instance = JsonValidate.objects.filter(url_path=url_path).first()
         if existing_instance:
             return Response({'message': 'URL Sudah Ada'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        json_schema_convert = re.sub(r'"type":\s*"str"', r'type: "string"', json_schema)
+        json_schema_convert = re.sub(r'"type":\s*"dict"', r'type: "object"', json_schema_convert)
+        json_schema_convert = re.sub(r'(".*?":\s*)(".*?")', r'\1\2', json_schema_convert)
+        json_schema_convert = re.sub(r'"required":\s*\[([^\]]*)\]', r'required: [\1]', json_schema_convert)
         json_data = {
             'url_path': url_path,
             'json_string': json_string,
-            'json_schema': json_schema,
+            'json_schema': json_schema_convert,
             'status': 1,
         }
 
