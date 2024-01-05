@@ -33,9 +33,10 @@ def get_data_by_url_path(request):
 
 @api_view(['DELETE'])
 def delete_data_by_url_path(request, url_path):
+    print(url_path)
     if request.method == 'DELETE':
         try:
-            json_data = JsonValidate.objects.get(url_path=url_path)
+            json_data = JsonValidate.objects.get(url_path='/' + url_path)
         except JsonValidate.DoesNotExist:
             return Response({'detail': 'Data tidak ditemukan'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -64,6 +65,7 @@ def validate_json(request):
         except json.JSONDecodeError:
             return JsonResponse({'detail': 'Skema JSON tidak valid'}, status=status.HTTP_400_BAD_REQUEST)
 
+        print(json_schema_dict)
         try:
             validate(instance=json.loads(json_string), schema=json_schema_dict)
             status_value = 1
